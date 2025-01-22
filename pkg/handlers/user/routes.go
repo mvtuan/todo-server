@@ -11,5 +11,6 @@ func (h *UserHandler) routes() {
 	h.router.Use(middlewares.AuthenticateRequest())
 
 	h.router.GET("/:id", h.getUser)
+	h.router.GET("/me", h.getMe)
 	h.router.POST("/", h.createUser)
 }
