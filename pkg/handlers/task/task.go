@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
-	"net/http"
 	"server/pkg/common"
 	"server/pkg/helpers"
 	"server/pkg/models"
@@ -13,12 +12,15 @@ import (
 func (t *TaskHandler) createTask(c *gin.Context) {
 	var input *models.Task
 	if err := c.Bind(&input); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "Bad request"})
+		common.Respond(c, &common.APIResponse{
+			Status:    common.APIStatus.Invalid,
+			Message:   "Bad request",
+			RootCause: err,
+		})
+		return
 	}
 
-	res := t.service.CreateTask(input)
-
-	common.Respond(c, res)
+	common.Respond(c, t.service.CreateTask(input))
 }
 
 func (t *TaskHandler) getTasks(c *gin.Context) {

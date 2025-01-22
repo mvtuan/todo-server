@@ -23,10 +23,10 @@ var APIStatus = statusType{
 }
 
 type APIResponse struct {
-	Status    apiStatusType `json:"status"`
-	Data      interface{}   `json:"data"`
-	Message   string        `json:"message"`
-	ErrorCode string        `json:"errorCode"`
+	Status    apiStatusType `json:"status,omitempty"`
+	Data      interface{}   `json:"data,omitempty"`
+	Message   string        `json:"message,omitempty"`
+	ErrorCode string        `json:"errorCode,omitempty"`
 	RootCause error         `json:"-"`
 }
 

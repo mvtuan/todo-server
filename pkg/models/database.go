@@ -11,6 +11,7 @@ import (
 type Database interface {
 	Create(data any) *common.APIResponse
 	Query(filter any, offset, limit int) *common.APIResponse
+	QueryOne(filter any) *common.APIResponse
 	Update(filter, updater any) *common.APIResponse
 	Migration() error
 }
@@ -75,6 +76,39 @@ func (db *DB) Query(filter any, offset, limit int) *common.APIResponse {
 	}
 }
 
+func (db *DB) QueryOne(filter any) *common.APIResponse {
+	query := db.db.Model(filter).Limit(1).Offset(0)
+
+	// Apply additional filters (if any)
+	if filter != nil {
+		query = query.Where(filter)
+	}
+
+	// Execute the query
+	result := query.Find(filter)
+
+	// Check if no records are found
+	if result.RowsAffected == 0 {
+		return &common.APIResponse{
+			Status:  common.APIStatus.NotFound,
+			Message: "Data not found",
+		}
+	}
+
+	// Check for any other errors
+	if result.Error != nil {
+		return &common.APIResponse{
+			Status:  common.APIStatus.InternalServerError,
+			Message: result.Error.Error(),
+		}
+	}
+
+	return &common.APIResponse{
+		Status: common.APIStatus.Ok,
+		Data:   filter,
+	}
+}
+
 func (db *DB) Update(filter, updater any) *common.APIResponse {
 	query := db.db.Model(filter).Where(filter)
 	query.Updates(updater)
@@ -88,6 +122,12 @@ func (db *DB) Update(filter, updater any) *common.APIResponse {
 func (db *DB) Migration() error {
 	if exist := db.db.Migrator().HasTable(&Task{}); exist == false {
 		err := db.db.Migrator().CreateTable(&Task{})
+		if err != nil {
+			return err
+		}
+	}
+	if exist := db.db.Migrator().HasTable(&User{}); exist == false {
+		err := db.db.Migrator().CreateTable(&User{})
 		if err != nil {
 			return err
 		}

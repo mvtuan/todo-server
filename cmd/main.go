@@ -5,9 +5,13 @@ import (
 	"log"
 	"os"
 	"server/pkg/handlers"
+	authHandler "server/pkg/handlers/auth"
 	taskHandler "server/pkg/handlers/task"
+	userHandler "server/pkg/handlers/user"
 	"server/pkg/models"
+	"server/pkg/services/auth"
 	"server/pkg/services/task"
+	"server/pkg/services/user"
 )
 
 func main() {
@@ -28,6 +32,12 @@ func main() {
 	server := handlers.NewServer(db, true)
 
 	env := "dev"
+	userService := user.NewUserService(db, env)
+	userHandler.NewUserHandler(server, "users", userService, nil)
+
+	authService := auth.NewAuthService(db, env)
+	authHandler.NewAuthHandler(server, "auth", authService, nil)
+
 	taskService := task.NewTaskService(db, env)
 	taskHandler.NewTaskHandler(server, "tasks", taskService, nil)
 
